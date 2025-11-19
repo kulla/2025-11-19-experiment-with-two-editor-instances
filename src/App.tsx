@@ -34,47 +34,46 @@ export default function App() {
     },
   })
 
+  const handleChange = (id: EditorId, editorState: EditorState) => {
+    setState((prevState) => ({
+      selection: {
+        id,
+        selection: editorState.selection.toJSON() as SelectionJSON,
+      },
+      content: {
+        ...prevState.content,
+        [id]: editorState.doc.toJSON() as NodeJSON,
+      },
+    }))
+  }
+
   return (
     <main className="p-10">
       <h1>ProseKit Basic Editor</h1>
       <article>
         <h5>Question:</h5>
-        <Editor onChange={createOnChange(EditorId.Question)} />
+        <Editor id={EditorId.Question} onChange={handleChange} />
         <h5>Answer:</h5>
-        <Editor onChange={createOnChange(EditorId.Answer)} />
+        <Editor id={EditorId.Answer} onChange={handleChange} />
       </article>
       <h1>App State:</h1>
       <pre>{JSON.stringify(state, null, 2)}</pre>
     </main>
   )
-
-  function createOnChange(id: EditorId) {
-    return (editorState: EditorState) => {
-      setState((prevState) => ({
-        selection: {
-          id,
-          selection: editorState.selection.toJSON() as SelectionJSON,
-        },
-        content: {
-          ...prevState.content,
-          [id]: editorState.doc.toJSON() as NodeJSON,
-        },
-      }))
-    }
-  }
 }
 
 interface EditorProps {
-  onChange: (state: EditorState) => void
+  id: EditorId
+  onChange: (id: EditorId, state: EditorState) => void
 }
 
-function Editor({ onChange }: EditorProps) {
+function Editor({ id, onChange }: EditorProps) {
   const editor = useMemo(() => {
     const extension = defineBasicExtension()
     return createEditor({ extension })
   }, [])
 
-  useStateUpdate(onChange, { editor })
+  useStateUpdate((state) => onChange(id, state), { editor })
 
   return (
     <ProseKit editor={editor}>
