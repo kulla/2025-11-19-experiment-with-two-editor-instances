@@ -13,7 +13,12 @@ export default function App() {
   return (
     <main className="p-10">
       <h1>ProseKit Basic Editor</h1>
-      <Editor />
+      <article>
+        <h5>Question:</h5>
+        <Editor />
+        <h5>Answer:</h5>
+        <Editor />
+      </article>
     </main>
   )
 }
@@ -26,7 +31,7 @@ function Editor() {
 
   return (
     <ProseKit editor={editor}>
-      <div ref={editor.mount} className="p-4"></div>
+      <div ref={editor.mount} className="mb-2" />
     </ProseKit>
   )
 }
