@@ -10,16 +10,23 @@ import { ProseKit } from 'prosekit/react'
 import { useMemo } from 'react'
 
 export default function App() {
+  return (
+    <main className="p-10">
+      <h1>ProseKit Basic Editor</h1>
+      <Editor />
+    </main>
+  )
+}
+
+function Editor() {
   const editor = useMemo(() => {
     const extension = defineBasicExtension()
     return createEditor({ extension })
   }, [])
 
   return (
-    <main className="p-10">
-      <ProseKit editor={editor}>
-        <div ref={editor.mount} className="border-2 rounded-xl p-4"></div>
-      </ProseKit>
-    </main>
+    <ProseKit editor={editor}>
+      <div ref={editor.mount} className="p-4"></div>
+    </ProseKit>
   )
 }
