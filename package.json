@@ -15,6 +15,7 @@
     "@picocss/pico": "^2.1.1",
     "clsx": "^2.1.1",
     "es-toolkit": "^1.42.0",
+    "prosekit": "^0.16.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
