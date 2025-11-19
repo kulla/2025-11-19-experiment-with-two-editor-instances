@@ -9,7 +9,7 @@ export default defineConfig({
     title: 'Prototype',
   },
   output: {
-    assetPrefix: '/rsbuild-react-bun-biome-starter-template/',
+    assetPrefix: '/2025-11-19-experiment-with-two-editor-instances/',
     sourceMap: {
       js: mode === 'development' ? 'eval-source-map' : 'source-map',
       css: true,
