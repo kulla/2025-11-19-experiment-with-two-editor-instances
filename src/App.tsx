@@ -57,7 +57,6 @@ export default function App() {
 
     const awarenessAListener: AwarenessListener = (_, origin) => {
       if (origin === 'local') {
-        console.log('apply from A to B')
         awarenessB.apply(awarenessA.encode([idA]))
       }
     }
