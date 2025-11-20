@@ -8,7 +8,13 @@ import type { EditorState } from '@prosekit/pm/state'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, type NodeJSON, type SelectionJSON } from 'prosekit/core'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
-import { useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { LoroDoc } from 'loro-crdt'
 import { isEqual } from 'es-toolkit'
 
@@ -33,6 +39,11 @@ const emptyContent: NodeJSON = {
 export default function App() {
   const { doc: loroDocA } = useLoroDoc()
   const { doc: loroDocB } = useLoroDoc()
+
+  useEffect(() => {
+    loroDocA.subscribeLocalUpdates((bytes) => loroDocB.import(bytes))
+    loroDocB.subscribeLocalUpdates((bytes) => loroDocA.import(bytes))
+  }, [loroDocA, loroDocB])
 
   const [state, setState] = useState<AppState>({
     selection: null,
