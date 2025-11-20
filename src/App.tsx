@@ -77,7 +77,19 @@ export default function App() {
 function TextareaEditor({ doc }: { doc: LoroDoc }) {
   const text = doc.getText('content')
 
-  return <textarea rows={10} cols={80} />
+  return (
+    <textarea
+      rows={10}
+      cols={80}
+      value={text.toString()}
+      placeholder="Enter text..."
+      onChange={(e) => {
+        text.delete(0, text.length)
+        text.insert(0, e.target.value)
+        doc.commit()
+      }}
+    />
+  )
 }
 
 interface EditorProps {
