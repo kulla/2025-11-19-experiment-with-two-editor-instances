@@ -41,22 +41,25 @@ const emptyContent: NodeJSON = {
 }
 
 export default function App() {
-  const { doc: loroDocA } = useLoroDoc()
-  const { doc: loroDocB } = useLoroDoc()
+  const { doc: loroA } = useLoroDoc()
+  const { doc: loroB } = useLoroDoc()
 
   useEffect(() => {
-    const unsubscribeA = loroDocA.subscribeLocalUpdates((bytes) =>
-      loroDocB.import(bytes),
+    loroA.import(loroB.export({ mode: 'update' }))
+    loroB.import(loroA.export({ mode: 'update' }))
+
+    const unsubscribeA = loroA.subscribeLocalUpdates((bytes) =>
+      loroB.import(bytes),
     )
-    const unsubscribeB = loroDocB.subscribeLocalUpdates((bytes) =>
-      loroDocA.import(bytes),
+    const unsubscribeB = loroB.subscribeLocalUpdates((bytes) =>
+      loroA.import(bytes),
     )
 
     return () => {
       unsubscribeA()
       unsubscribeB()
     }
-  }, [loroDocA, loroDocB])
+  }, [loroA, loroB])
 
   const [state, setState] = useState<AppState>({
     selection: null,
@@ -82,8 +85,8 @@ export default function App() {
   return (
     <main className="p-10">
       <div className="mb-6 flex gap-4">
-        <TextareaEditor doc={loroDocA} />
-        <TextareaEditor doc={loroDocB} />
+        <TextareaEditor doc={loroA} />
+        <TextareaEditor doc={loroB} />
       </div>
 
       <h1>ProseKit Basic Editor</h1>
