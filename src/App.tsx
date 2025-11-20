@@ -71,6 +71,8 @@ export default function App() {
     return () => {
       unsubscribeA()
       unsubscribeB()
+      awarenessA.removeListener(awarenessAListener)
+      awarenessB.removeListener(awarenessBListener)
     }
   }, [loroA, loroB, awarenessA, awarenessB, idA, idB])
 
