@@ -4,9 +4,9 @@ import './App.css'
 import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
-import { defineBasicExtension } from 'prosekit/basic'
-import { createEditor, SelectionJSON, type NodeJSON } from 'prosekit/core'
 import type { EditorState } from '@prosekit/pm/state'
+import { defineBasicExtension } from 'prosekit/basic'
+import { createEditor, type NodeJSON, type SelectionJSON } from 'prosekit/core'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
 import { useMemo, useState } from 'react'
 
