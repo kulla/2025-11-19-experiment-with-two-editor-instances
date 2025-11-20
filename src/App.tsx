@@ -8,7 +8,11 @@ import type { EditorState } from '@prosekit/pm/state'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, type NodeJSON, type SelectionJSON } from 'prosekit/core'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { LoroDoc } from 'loro-crdt'
+
+const loroDocA = new LoroDoc()
+const loroDocB = new LoroDoc()
 
 enum EditorId {
   Question = 'question',
@@ -26,6 +30,9 @@ const emptyContent: NodeJSON = {
 }
 
 export default function App() {
+  const loroDocA = useRef(new LoroDoc()).current
+  const loroDocB = useRef(new LoroDoc()).current
+
   const [state, setState] = useState<AppState>({
     selection: null,
     content: {
@@ -49,6 +56,11 @@ export default function App() {
 
   return (
     <main className="p-10">
+      <div className="mb-6 flex gap-4">
+        <TextareaEditor doc={loroDocA} />
+        <TextareaEditor doc={loroDocB} />
+      </div>
+
       <h1>ProseKit Basic Editor</h1>
       <article>
         <h5>Question:</h5>
@@ -60,6 +72,12 @@ export default function App() {
       <pre>{JSON.stringify(state, null, 2)}</pre>
     </main>
   )
+}
+
+function TextareaEditor({ doc }: { doc: LoroDoc }) {
+  const text = doc.getText('content')
+
+  return <textarea rows={10} cols={80} />
 }
 
 interface EditorProps {
