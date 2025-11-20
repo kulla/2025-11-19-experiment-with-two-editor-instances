@@ -45,8 +45,17 @@ export default function App() {
   const { doc: loroDocB } = useLoroDoc()
 
   useEffect(() => {
-    loroDocA.subscribeLocalUpdates((bytes) => loroDocB.import(bytes))
-    loroDocB.subscribeLocalUpdates((bytes) => loroDocA.import(bytes))
+    const unsubscribeA = loroDocA.subscribeLocalUpdates((bytes) =>
+      loroDocB.import(bytes),
+    )
+    const unsubscribeB = loroDocB.subscribeLocalUpdates((bytes) =>
+      loroDocA.import(bytes),
+    )
+
+    return () => {
+      unsubscribeA()
+      unsubscribeB()
+    }
   }, [loroDocA, loroDocB])
 
   const [state, setState] = useState<AppState>({
