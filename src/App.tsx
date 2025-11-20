@@ -95,7 +95,7 @@ function useLoroDoc() {
   const lastReturn = useRef({ doc: loroDoc, version: loroDoc.version() })
 
   return useSyncExternalStore(
-    (subscribe) => loroDoc.subscribe(subscribe),
+    (listener) => loroDoc.subscribe(listener),
     () => {
       if (loroDoc.version().compare(lastReturn.current.version) === 0) {
         return lastReturn.current
