@@ -56,14 +56,10 @@ export default function App() {
     )
 
     const awarenessAListener: AwarenessListener = (_, origin) => {
-      if (origin === 'local') {
-        awarenessB.apply(awarenessA.encode([idA]))
-      }
+      if (origin === 'local') awarenessB.apply(awarenessA.encode([idA]))
     }
     const awarenessBListener: AwarenessListener = (_, origin) => {
-      if (origin === 'local') {
-        awarenessA.apply(awarenessB.encode([idB]))
-      }
+      if (origin === 'local') awarenessA.apply(awarenessB.encode([idB]))
     }
     awarenessA.addListener(awarenessAListener)
     awarenessB.addListener(awarenessBListener)
