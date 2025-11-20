@@ -5,6 +5,7 @@ import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
 import type { EditorState } from '@prosekit/pm/state'
+import { LoroDoc } from 'loro-crdt'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, type NodeJSON, type SelectionJSON } from 'prosekit/core'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
@@ -15,7 +16,6 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react'
-import { LoroDoc } from 'loro-crdt'
 
 enum EditorId {
   Question = 'question',
