@@ -6,7 +6,7 @@ import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
 import type { EditorState } from '@prosekit/pm/state'
-import { LoroDoc } from 'loro-crdt'
+import { AwarenessListener, LoroDoc } from 'loro-crdt'
 import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
 import {
@@ -41,8 +41,8 @@ const emptyContent: NodeJSON = {
 }
 
 export default function App() {
-  const { doc: loroA } = useLoroDoc()
-  const { doc: loroB } = useLoroDoc()
+  const { doc: loroA, awareness: awarenessA, id: idA } = useLoroDoc()
+  const { doc: loroB, awareness: awarenessB, id: idB } = useLoroDoc()
 
   useEffect(() => {
     loroA.import(loroB.export({ mode: 'update' }))
@@ -55,11 +55,24 @@ export default function App() {
       loroA.import(bytes),
     )
 
+    const awarenessAListener: AwarenessListener = (_, origin) => {
+      if (origin === 'local') {
+        awarenessB.apply(awarenessA.encode([idA]))
+      }
+    }
+    const awarenessBListener: AwarenessListener = (_, origin) => {
+      if (origin === 'local') {
+        awarenessA.apply(awarenessB.encode([idB]))
+      }
+    }
+    awarenessA.addListener(awarenessAListener)
+    awarenessB.addListener(awarenessBListener)
+
     return () => {
       unsubscribeA()
       unsubscribeB()
     }
-  }, [loroA, loroB])
+  }, [loroA, loroB, awarenessA, awarenessB, idA, idB])
 
   const [state, setState] = useState<AppState>({
     selection: null,
@@ -103,17 +116,19 @@ export default function App() {
 }
 
 function useLoroDoc() {
-  const loroDoc = useRef<LoroDocType>(new LoroDoc()).current
-  const lastReturn = useRef({ doc: loroDoc, version: loroDoc.version() })
+  const doc = useRef<LoroDocType>(new LoroDoc()).current
+  const id = useRef(doc.peerIdStr).current
+  const awareness = useRef(new CursorAwareness(id)).current
+  const lastReturn = useRef({ doc, awareness, id, version: doc.version() })
 
   return useSyncExternalStore(
-    (listener) => loroDoc.subscribe(listener),
+    (listener) => doc.subscribe(listener),
     () => {
-      if (loroDoc.version().compare(lastReturn.current.version) === 0) {
+      if (doc.version().compare(lastReturn.current.version) === 0) {
         return lastReturn.current
       }
 
-      lastReturn.current = { doc: loroDoc, version: loroDoc.version() }
+      lastReturn.current = { doc, id, awareness, version: doc.version() }
 
       return lastReturn.current
     },
