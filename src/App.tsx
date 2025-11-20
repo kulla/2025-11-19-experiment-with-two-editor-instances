@@ -1,4 +1,5 @@
 import '@picocss/pico/css/pico.min.css'
+import 'prosekit/extensions/loro/style.css'
 import './App.css'
 
 import 'prosekit/basic/style.css'
@@ -6,8 +7,15 @@ import 'prosekit/basic/typography.css'
 
 import type { EditorState } from '@prosekit/pm/state'
 import { LoroDoc } from 'loro-crdt'
+import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
-import { createEditor, type NodeJSON, type SelectionJSON } from 'prosekit/core'
+import {
+  createEditor,
+  type NodeJSON,
+  type SelectionJSON,
+  union,
+} from 'prosekit/core'
+import { defineLoro } from 'prosekit/extensions/loro'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
 import {
   useEffect,
@@ -83,7 +91,7 @@ export default function App() {
 }
 
 function useLoroDoc() {
-  const loroDoc = useRef(new LoroDoc()).current
+  const loroDoc = useRef<LoroDocType>(new LoroDoc()).current
   const lastReturn = useRef({ doc: loroDoc, version: loroDoc.version() })
 
   return useSyncExternalStore(
@@ -100,21 +108,20 @@ function useLoroDoc() {
   )
 }
 
-function TextareaEditor({ doc }: { doc: LoroDoc }) {
-  const text = useMemo(() => doc.getText('content'), [doc])
+function TextareaEditor({ doc }: { doc: LoroDocType }) {
+  const editor = useMemo(() => {
+    const awareness = new CursorAwareness(doc.peerIdStr)
+    const extension = union(
+      defineBasicExtension(),
+      defineLoro({ doc, awareness }),
+    )
+    return createEditor({ extension })
+  }, [doc])
 
   return (
-    <textarea
-      rows={10}
-      cols={80}
-      value={text.toString()}
-      placeholder="Enter text..."
-      onChange={(e) => {
-        text.delete(0, text.length)
-        text.insert(0, e.target.value)
-        doc.commit()
-      }}
-    />
+    <ProseKit editor={editor}>
+      <div ref={editor.mount} className="mb-2 border-2 w-80 p-4 rounded-2xl" />
+    </ProseKit>
   )
 }
 
