@@ -8,8 +8,9 @@ import type { EditorState } from '@prosekit/pm/state'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, type NodeJSON, type SelectionJSON } from 'prosekit/core'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { LoroDoc } from 'loro-crdt'
+import { isEqual } from 'es-toolkit'
 
 const loroDocA = new LoroDoc()
 const loroDocB = new LoroDoc()
@@ -30,8 +31,8 @@ const emptyContent: NodeJSON = {
 }
 
 export default function App() {
-  const loroDocA = useRef(new LoroDoc()).current
-  const loroDocB = useRef(new LoroDoc()).current
+  const { doc: loroDocA } = useLoroDoc()
+  const { doc: loroDocB } = useLoroDoc()
 
   const [state, setState] = useState<AppState>({
     selection: null,
@@ -71,6 +72,24 @@ export default function App() {
       <h1>App State:</h1>
       <pre>{JSON.stringify(state, null, 2)}</pre>
     </main>
+  )
+}
+
+function useLoroDoc() {
+  const loroDoc = useRef(new LoroDoc()).current
+  const lastReturn = useRef({ doc: loroDoc, version: loroDoc.version() })
+
+  return useSyncExternalStore(
+    (subscribe) => loroDoc.subscribe(subscribe),
+    () => {
+      if (loroDoc.version().compare(lastReturn.current.version) === 0) {
+        return lastReturn.current
+      }
+
+      lastReturn.current = { doc: loroDoc, version: loroDoc.version() }
+
+      return lastReturn.current
+    },
   )
 }
 
