@@ -100,6 +100,7 @@ export default function App() {
 
   return (
     <main className="p-10">
+      <h1>ProseKit Loro Editors</h1>
       <div className="mb-6 flex gap-4">
         <TextareaEditor doc={loroA} awareness={awarenessA} />
         <TextareaEditor doc={loroB} awareness={awarenessB} />
