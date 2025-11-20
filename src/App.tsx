@@ -16,10 +16,6 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { LoroDoc } from 'loro-crdt'
-import { isEqual } from 'es-toolkit'
-
-const loroDocA = new LoroDoc()
-const loroDocB = new LoroDoc()
 
 enum EditorId {
   Question = 'question',
