@@ -94,7 +94,7 @@ function useLoroDoc() {
 }
 
 function TextareaEditor({ doc }: { doc: LoroDoc }) {
-  const text = doc.getText('content')
+  const text = useMemo(() => doc.getText('content'), [doc])
 
   return (
     <textarea
