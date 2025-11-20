@@ -57,6 +57,7 @@ export default function App() {
 
     const awarenessAListener: AwarenessListener = (_, origin) => {
       if (origin === 'local') {
+        console.log('apply from A to B')
         awarenessB.apply(awarenessA.encode([idA]))
       }
     }
@@ -100,8 +101,8 @@ export default function App() {
   return (
     <main className="p-10">
       <div className="mb-6 flex gap-4">
-        <TextareaEditor doc={loroA} />
-        <TextareaEditor doc={loroB} />
+        <TextareaEditor doc={loroA} awareness={awarenessA} />
+        <TextareaEditor doc={loroB} awareness={awarenessB} />
       </div>
 
       <h1>ProseKit Basic Editor</h1>
@@ -137,15 +138,20 @@ function useLoroDoc() {
   )
 }
 
-function TextareaEditor({ doc }: { doc: LoroDocType }) {
+function TextareaEditor({
+  doc,
+  awareness,
+}: {
+  doc: LoroDocType
+  awareness: CursorAwareness
+}) {
   const editor = useMemo(() => {
-    const awareness = new CursorAwareness(doc.peerIdStr)
     const extension = union(
       defineBasicExtension(),
       defineLoro({ doc, awareness }),
     )
     return createEditor({ extension })
-  }, [doc])
+  }, [doc, awareness])
 
   return (
     <ProseKit editor={editor}>
