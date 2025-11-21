@@ -9,29 +9,14 @@ import type { EditorState } from '@prosekit/pm/state'
 import { type AwarenessListener, LoroDoc } from 'loro-crdt'
 import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
-import {
-  createEditor,
-  type NodeJSON,
-  type SelectionJSON,
-  union,
-} from 'prosekit/core'
+import { createEditor, union } from 'prosekit/core'
 import { defineLoro } from 'prosekit/extensions/loro'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 enum EditorId {
   Question = 'question',
   Answer = 'answer',
-}
-
-interface AppState {
-  selection: { id: EditorId; selection: SelectionJSON } | null
-  content: Record<EditorId, NodeJSON>
-}
-
-const emptyContent: NodeJSON = {
-  type: 'doc',
-  content: [{ type: 'paragraph' }],
 }
 
 export default function App() {
@@ -66,44 +51,13 @@ export default function App() {
     }
   }, [loroA, loroB, awarenessA, awarenessB, idA, idB])
 
-  const [state, setState] = useState<AppState>({
-    selection: null,
-    content: {
-      [EditorId.Question]: emptyContent,
-      [EditorId.Answer]: emptyContent,
-    },
-  })
-
-  const handleChange = (id: EditorId, editorState: EditorState) => {
-    setState((prevState) => ({
-      selection: {
-        id,
-        selection: editorState.selection.toJSON() as SelectionJSON,
-      },
-      content: {
-        ...prevState.content,
-        [id]: editorState.doc.toJSON() as NodeJSON,
-      },
-    }))
-  }
-
   return (
     <main className="p-10">
-      <h1>ProseKit Loro Editors</h1>
+      <h1>Editors</h1>
       <div className="mb-6 flex gap-4">
-        <TextareaEditor doc={loroA} awareness={awarenessA} />
-        <TextareaEditor doc={loroB} awareness={awarenessB} />
+        <ExerciseEditor doc={loroA} awareness={awarenessA} />
+        <ExerciseEditor doc={loroB} awareness={awarenessB} />
       </div>
-
-      <h1>ProseKit Basic Editor</h1>
-      <article>
-        <h5>Question:</h5>
-        <Editor id={EditorId.Question} onChange={handleChange} />
-        <h5>Answer:</h5>
-        <Editor id={EditorId.Answer} onChange={handleChange} />
-      </article>
-      <h1>App State:</h1>
-      <pre>{JSON.stringify(state, null, 2)}</pre>
     </main>
   )
 }
@@ -116,13 +70,38 @@ function useLoroDoc() {
   return { doc, awareness, id }
 }
 
-function TextareaEditor({
-  doc,
-  awareness,
-}: {
+interface ExerciseEditorProps {
   doc: LoroDocType
   awareness: CursorAwareness
-}) {
+}
+
+function ExerciseEditor({ doc, awareness }: ExerciseEditorProps) {
+  return (
+    <article className="w-80">
+      <h5>Question:</h5>
+      <Editor
+        id={EditorId.Question}
+        doc={doc}
+        awareness={awareness}
+        onChange={() => void 0}
+      />
+      <h5>Answer:</h5>
+      <Editor
+        id={EditorId.Answer}
+        doc={doc}
+        awareness={awareness}
+        onChange={() => void 0}
+      />
+    </article>
+  )
+}
+
+interface EditorProps extends ExerciseEditorProps {
+  id: EditorId
+  onChange: (id: EditorId, state: EditorState) => void
+}
+
+function Editor({ id, onChange, doc, awareness }: EditorProps) {
   const editor = useMemo(() => {
     const extension = union(
       defineBasicExtension(),
@@ -130,24 +109,6 @@ function TextareaEditor({
     )
     return createEditor({ extension })
   }, [doc, awareness])
-
-  return (
-    <ProseKit editor={editor}>
-      <div ref={editor.mount} className="mb-2 border-2 w-80 p-4 rounded-2xl" />
-    </ProseKit>
-  )
-}
-
-interface EditorProps {
-  id: EditorId
-  onChange: (id: EditorId, state: EditorState) => void
-}
-
-function Editor({ id, onChange }: EditorProps) {
-  const editor = useMemo(() => {
-    const extension = defineBasicExtension()
-    return createEditor({ extension })
-  }, [])
 
   useStateUpdate((state) => onChange(id, state), { editor })
 
