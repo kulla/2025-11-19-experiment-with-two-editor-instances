@@ -17,13 +17,7 @@ import {
 } from 'prosekit/core'
 import { defineLoro } from 'prosekit/extensions/loro'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 enum EditorId {
   Question = 'question',
@@ -118,20 +112,8 @@ function useLoroDoc() {
   const doc = useRef<LoroDocType>(new LoroDoc()).current
   const id = useRef(doc.peerIdStr).current
   const awareness = useRef(new CursorAwareness(id)).current
-  const lastReturn = useRef({ doc, awareness, id, version: doc.version() })
 
-  return useSyncExternalStore(
-    (listener) => doc.subscribe(listener),
-    () => {
-      if (doc.version().compare(lastReturn.current.version) === 0) {
-        return lastReturn.current
-      }
-
-      lastReturn.current = { doc, id, awareness, version: doc.version() }
-
-      return lastReturn.current
-    },
-  )
+  return { doc, awareness, id }
 }
 
 function TextareaEditor({
