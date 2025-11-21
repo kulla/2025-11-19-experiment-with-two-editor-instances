@@ -7,9 +7,19 @@ import 'prosekit/basic/typography.css'
 
 import type { EditorState } from '@prosekit/pm/state'
 import { type AwarenessListener, LoroDoc } from 'loro-crdt'
-import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
+import {
+  CursorAwareness,
+  type LoroDocType,
+  LoroCursorPlugin,
+} from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
-import { createEditor, union } from 'prosekit/core'
+import {
+  createEditor,
+  definePlugin,
+  Priority,
+  union,
+  withPriority,
+} from 'prosekit/core'
 import { defineLoro, defineLoroSyncPlugin } from 'prosekit/extensions/loro'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
 import { useEffect, useMemo, useRef } from 'react'
@@ -106,13 +116,19 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
     const loroMap = doc.getMap(`editor-${id}`)
     const extension = union(
       defineBasicExtension(),
-      defineLoroSyncPlugin({
-        doc: doc as LoroDocType,
-        containerId: loroMap.id,
-      }),
+      withPriority(
+        union([
+          defineCursorPlugin(awareness),
+          defineLoroSyncPlugin({
+            doc: doc as LoroDocType,
+            containerId: loroMap.id,
+          }),
+        ]),
+        Priority.high,
+      ),
     )
     return createEditor({ extension })
-  }, [doc, id])
+  }, [doc, id, awareness])
 
   useStateUpdate((state) => onChange(id, state), { editor })
 
@@ -121,4 +137,10 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
       <div ref={editor.mount} className="mb-2" />
     </ProseKit>
   )
+}
+
+function defineCursorPlugin(awareness: CursorAwareness) {
+  const basePlugin = LoroCursorPlugin(awareness, {})
+
+  return definePlugin(basePlugin)
 }
