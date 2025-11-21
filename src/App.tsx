@@ -6,7 +6,7 @@ import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
 import type { EditorState } from '@prosekit/pm/state'
-import { type AwarenessListener, LoroDoc } from 'loro-crdt'
+import { type AwarenessListener, type Cursor, LoroDoc } from 'loro-crdt'
 import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, union } from 'prosekit/core'
@@ -27,12 +27,20 @@ export default function App() {
     loroA.import(loroB.export({ mode: 'update' }))
     loroB.import(loroA.export({ mode: 'update' }))
 
-    const unsubscribeA = loroA.subscribeLocalUpdates((bytes) =>
-      loroB.import(bytes),
-    )
-    const unsubscribeB = loroB.subscribeLocalUpdates((bytes) =>
-      loroA.import(bytes),
-    )
+    const unsubscribeA = loroA.subscribeLocalUpdates((bytes) => {
+      console.log()
+      console.log('== Doc A has been updated ==')
+      console.log(loroA.exportJsonUpdates())
+
+      return loroB.import(bytes)
+    })
+    const unsubscribeB = loroB.subscribeLocalUpdates((bytes) => {
+      console.log()
+      console.log('== Doc B has been updated ==')
+      console.log(loroB.exportJsonUpdates())
+
+      return loroA.import(bytes)
+    })
 
     const awarenessAListener: AwarenessListener = (_, origin) => {
       if (origin === 'local') awarenessB.apply(awarenessA.encode([idA]))
@@ -65,7 +73,7 @@ export default function App() {
 function useLoroDoc() {
   const doc = useRef<LoroDocType>(new LoroDoc()).current
   const id = useRef(doc.peerIdStr).current
-  const awareness = useRef(new CursorAwareness(id)).current
+  const awareness = useRef(new MyCursorAwareness(id)).current
 
   return { doc, awareness, id }
 }
@@ -122,4 +130,19 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
       <div ref={editor.mount} className="mb-2" />
     </ProseKit>
   )
+}
+
+class MyCursorAwareness extends CursorAwareness {
+  override setLocal(state: {
+    anchor?: Cursor
+    focus?: Cursor
+    user?: { name: string; color: string }
+  }) {
+    console.log('Setting local awareness state:', state)
+    console.log('anchor container id', state.anchor?.containerId())
+    console.log(state.anchor?.kind())
+    console.log(state.anchor?.pos())
+
+    super.setLocal(state)
+  }
 }
