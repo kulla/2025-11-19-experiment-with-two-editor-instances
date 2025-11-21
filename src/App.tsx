@@ -10,7 +10,7 @@ import { type AwarenessListener, LoroDoc } from 'loro-crdt'
 import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, union } from 'prosekit/core'
-import { defineLoro } from 'prosekit/extensions/loro'
+import { defineLoro, defineLoroSyncPlugin } from 'prosekit/extensions/loro'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
 import { useEffect, useMemo, useRef } from 'react'
 
@@ -106,14 +106,13 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
     const loroMap = doc.getMap(`editor-${id}`)
     const extension = union(
       defineBasicExtension(),
-      defineLoro({
+      defineLoroSyncPlugin({
         doc: doc as LoroDocType,
-        awareness,
-        sync: { containerId: loroMap.id },
+        containerId: loroMap.id,
       }),
     )
     return createEditor({ extension })
-  }, [doc, awareness, id])
+  }, [doc, id])
 
   useStateUpdate((state) => onChange(id, state), { editor })
 
