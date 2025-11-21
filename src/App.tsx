@@ -71,7 +71,7 @@ function useLoroDoc() {
 }
 
 interface ExerciseEditorProps {
-  doc: LoroDocType
+  doc: LoroDoc
   awareness: CursorAwareness
 }
 
@@ -103,12 +103,17 @@ interface EditorProps extends ExerciseEditorProps {
 
 function Editor({ id, onChange, doc, awareness }: EditorProps) {
   const editor = useMemo(() => {
+    const loroMap = doc.getMap(`editor-${id}`)
     const extension = union(
       defineBasicExtension(),
-      defineLoro({ doc, awareness }),
+      defineLoro({
+        doc: doc as LoroDocType,
+        awareness,
+        sync: { containerId: loroMap.id },
+      }),
     )
     return createEditor({ extension })
-  }, [doc, awareness])
+  }, [doc, awareness, id])
 
   useStateUpdate((state) => onChange(id, state), { editor })
 
