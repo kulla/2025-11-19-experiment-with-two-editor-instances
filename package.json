@@ -15,14 +15,14 @@
     "@picocss/pico": "^2.1.1",
     "clsx": "^2.1.1",
     "es-toolkit": "^1.42.0",
-    "loro-crdt": "^1.9.0",
+    "loro-crdt": "^1.10.0",
     "loro-prosemirror": "^0.3.7",
     "prosekit": "^0.16.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.6",
+    "@biomejs/biome": "^2.3.7",
     "@rsbuild/core": "^1.6.7",
     "@rsbuild/plugin-react": "^1.4.2",
     "@tailwindcss/postcss": "^4.1.17",
