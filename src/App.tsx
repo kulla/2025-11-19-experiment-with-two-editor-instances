@@ -5,22 +5,12 @@ import './App.css'
 import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
-import { Plugin, type EditorState } from '@prosekit/pm/state'
+import type { EditorState } from '@prosekit/pm/state'
 import { type AwarenessListener, LoroDoc } from 'loro-crdt'
-import {
-  CursorAwareness,
-  type LoroDocType,
-  LoroCursorPlugin,
-} from 'loro-prosemirror'
+import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
-import {
-  createEditor,
-  definePlugin,
-  Priority,
-  union,
-  withPriority,
-} from 'prosekit/core'
-import { defineLoro, defineLoroSyncPlugin } from 'prosekit/extensions/loro'
+import { createEditor, union } from 'prosekit/core'
+import { defineLoro } from 'prosekit/extensions/loro'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
 import { useEffect, useMemo, useRef } from 'react'
 
@@ -81,7 +71,7 @@ function useLoroDoc() {
 }
 
 interface ExerciseEditorProps {
-  doc: LoroDoc
+  doc: LoroDocType
   awareness: CursorAwareness
 }
 
@@ -113,22 +103,12 @@ interface EditorProps extends ExerciseEditorProps {
 
 function Editor({ id, onChange, doc, awareness }: EditorProps) {
   const editor = useMemo(() => {
-    const loroMap = doc.getMap(`editor-${id}`)
     const extension = union(
       defineBasicExtension(),
-      withPriority(
-        union([
-          defineCursorPlugin(awareness),
-          defineLoroSyncPlugin({
-            doc: doc as LoroDocType,
-            containerId: loroMap.id,
-          }),
-        ]),
-        Priority.high,
-      ),
+      defineLoro({ doc, awareness }),
     )
     return createEditor({ extension })
-  }, [doc, id, awareness])
+  }, [doc, awareness])
 
   useStateUpdate((state) => onChange(id, state), { editor })
 
@@ -136,29 +116,5 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
     <ProseKit editor={editor}>
       <div ref={editor.mount} className="mb-2" />
     </ProseKit>
-  )
-}
-
-function defineCursorPlugin(awareness: CursorAwareness) {
-  const { spec } = LoroCursorPlugin(awareness, {})
-
-  return definePlugin(
-    new Plugin({
-      ...spec,
-      state: {
-        init: spec.state!.init,
-        apply: (tr, prevState, _oldState, newState) => {
-          console.log(tr)
-
-          const nextState = spec.state!.apply(
-            tr,
-            prevState,
-            _oldState,
-            newState,
-          )
-          return nextState
-        },
-      },
-    }),
   )
 }
