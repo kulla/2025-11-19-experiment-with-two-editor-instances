@@ -140,6 +140,10 @@ class EditorSpecificCursorAwareness {
     private awareness: CursorAwareness,
   ) {}
 
+  getAllStates() {
+    return this.awareness.getAllStates()
+  }
+
   getAll() {
     const ans: {
       [peer in PeerID]: {
@@ -167,9 +171,13 @@ class EditorSpecificCursorAwareness {
       color: string
     }
   }) {
-    this.awareness.setLocal(state)
-    // @ts-expect-error
-    this.awareness.setLocalState({ editorId: this.editorId })
+    this.awareness.setLocalState({
+      // @ts-expect-error
+      editorId: this.editorId,
+      anchor: state.anchor?.encode() || null,
+      focus: state.focus?.encode() || null,
+      user: state.user || null,
+    })
   }
   getLocal() {
     const state = this.awareness.getLocal()
