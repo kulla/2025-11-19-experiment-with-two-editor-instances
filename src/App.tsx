@@ -55,8 +55,8 @@ export default function App() {
     <main className="p-10">
       <h1>Editors</h1>
       <div className="mb-6 flex gap-4">
-        <ExerciseEditor doc={loroA} awareness={awarenessA} />
-        <ExerciseEditor doc={loroB} awareness={awarenessB} />
+        <ExerciseEditor doc={loroA} awareness={awarenessA} name="A" />
+        <ExerciseEditor doc={loroB} awareness={awarenessB} name="B" />
       </div>
     </main>
   )
@@ -71,34 +71,40 @@ function useLoroDoc() {
 }
 
 interface ExerciseEditorProps {
+  name: string
   doc: LoroDoc
   awareness: CursorAwareness
 }
 
-function ExerciseEditor({ doc, awareness }: ExerciseEditorProps) {
+function ExerciseEditor({ doc, awareness, name }: ExerciseEditorProps) {
   return (
-    <article className="w-80">
-      <h5>Question:</h5>
-      <Editor
-        id={EditorId.Question}
-        doc={doc}
-        awareness={awareness}
-        onChange={() => void 0}
-      />
-      <h5>Answer:</h5>
-      <Editor
-        id={EditorId.Answer}
-        doc={doc}
-        awareness={awareness}
-        onChange={() => void 0}
-      />
-    </article>
+    <div className="w-80">
+      <h3>Editor {name}</h3>
+      <article>
+        <h5>Question:</h5>
+        <Editor
+          id={EditorId.Question}
+          doc={doc}
+          awareness={awareness}
+          onChange={() => void 0}
+        />
+        <h5>Answer:</h5>
+        <Editor
+          id={EditorId.Answer}
+          doc={doc}
+          awareness={awareness}
+          onChange={() => void 0}
+        />
+      </article>
+    </div>
   )
 }
 
-interface EditorProps extends ExerciseEditorProps {
+interface EditorProps {
   id: EditorId
   onChange: (id: EditorId, state: EditorState) => void
+  doc: LoroDoc
+  awareness: CursorAwareness
 }
 
 function Editor({ id, onChange, doc, awareness }: EditorProps) {
