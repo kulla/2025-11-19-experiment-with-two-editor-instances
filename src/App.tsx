@@ -5,7 +5,7 @@ import './App.css'
 import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
-import type { EditorState } from '@prosekit/pm/state'
+import { Plugin, type EditorState } from '@prosekit/pm/state'
 import { type AwarenessListener, LoroDoc } from 'loro-crdt'
 import {
   CursorAwareness,
@@ -140,7 +140,25 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
 }
 
 function defineCursorPlugin(awareness: CursorAwareness) {
-  const basePlugin = LoroCursorPlugin(awareness, {})
+  const { spec } = LoroCursorPlugin(awareness, {})
 
-  return definePlugin(basePlugin)
+  return definePlugin(
+    new Plugin({
+      ...spec,
+      state: {
+        init: spec.state!.init,
+        apply: (tr, prevState, _oldState, newState) => {
+          console.log(tr)
+
+          const nextState = spec.state!.apply(
+            tr,
+            prevState,
+            _oldState,
+            newState,
+          )
+          return nextState
+        },
+      },
+    }),
+  )
 }
