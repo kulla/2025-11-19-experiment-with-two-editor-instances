@@ -6,7 +6,13 @@ import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
 import type { EditorState } from '@prosekit/pm/state'
-import { type AwarenessListener, LoroDoc } from 'loro-crdt'
+import {
+  type AwarenessListener,
+  Cursor,
+  LoroDoc,
+  PeerID,
+  Awareness,
+} from 'loro-crdt'
 import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, union } from 'prosekit/core'
@@ -71,7 +77,7 @@ function useLoroDoc() {
 }
 
 interface ExerciseEditorProps {
-  doc: LoroDocType
+  doc: LoroDoc
   awareness: CursorAwareness
 }
 
@@ -103,12 +109,21 @@ interface EditorProps extends ExerciseEditorProps {
 
 function Editor({ id, onChange, doc, awareness }: EditorProps) {
   const editor = useMemo(() => {
+    const editorMap = doc.getMap(`prosemirror:${id}`)
+    const editorAwareness = new EditorSpecificCursorAwareness(
+      id,
+      awareness,
+    ) as unknown as CursorAwareness
     const extension = union(
       defineBasicExtension(),
-      defineLoro({ doc, awareness }),
+      defineLoro({
+        doc: doc as LoroDocType,
+        awareness: editorAwareness,
+        sync: { containerId: editorMap.id },
+      }),
     )
     return createEditor({ extension })
-  }, [doc, awareness])
+  }, [doc, awareness, id])
 
   useStateUpdate((state) => onChange(id, state), { editor })
 
@@ -117,4 +132,56 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
       <div ref={editor.mount} className="mb-2" />
     </ProseKit>
   )
+}
+
+class EditorSpecificCursorAwareness {
+  constructor(
+    private editorId: EditorId,
+    private awareness: CursorAwareness,
+  ) {}
+
+  getAll() {
+    const ans: {
+      [peer in PeerID]: {
+        anchor?: Cursor
+        focus?: Cursor
+        user?: { name: string; color: string }
+      }
+    } = {}
+    for (const [peer, state] of Object.entries(this.awareness.getAllStates())) {
+      if (!('editorId' in state) || state.editorId !== this.editorId) continue
+
+      ans[peer as PeerID] = {
+        anchor: state.anchor ? Cursor.decode(state.anchor) : undefined,
+        focus: state.focus ? Cursor.decode(state.focus) : undefined,
+        user: state.user ? state.user : undefined,
+      }
+    }
+    return ans
+  }
+  setLocal(state: {
+    anchor?: Cursor
+    focus?: Cursor
+    user?: {
+      name: string
+      color: string
+    }
+  }) {
+    this.awareness.setLocal(state)
+    // @ts-expect-error
+    this.awareness.setLocalState({ editorId: this.editorId })
+  }
+  getLocal() {
+    const state = this.awareness.getLocal()
+    // @ts-expect-error
+    if (state?.editorId !== this.editorId) return undefined
+    return state
+  }
+  addListener(listener: AwarenessListener) {
+    this.awareness.addListener(listener)
+  }
+
+  removeListener(listener: AwarenessListener) {
+    this.awareness.removeListener(listener)
+  }
 }
