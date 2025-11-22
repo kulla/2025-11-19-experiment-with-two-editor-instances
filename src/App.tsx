@@ -6,13 +6,7 @@ import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
 import type { EditorState } from '@prosekit/pm/state'
-import {
-  type AwarenessListener,
-  Cursor,
-  LoroDoc,
-  PeerID,
-  Awareness,
-} from 'loro-crdt'
+import { type AwarenessListener, Cursor, LoroDoc, type PeerID } from 'loro-crdt'
 import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, union } from 'prosekit/core'
