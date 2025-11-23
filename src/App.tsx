@@ -110,15 +110,12 @@ interface EditorProps {
 function Editor({ id, onChange, doc, awareness }: EditorProps) {
   const editor = useMemo(() => {
     const editorMap = doc.getMap(`prosemirror:${id}`)
-    const editorAwareness = new EditorSpecificCursorAwareness(
-      id,
-      awareness,
-    ) as unknown as CursorAwareness
+    const editorAwareness = new EditorSpecificCursorAwareness(id, awareness)
     const extension = union(
       defineBasicExtension(),
       defineLoro({
         doc: doc as LoroDocType,
-        awareness: editorAwareness,
+        awareness: editorAwareness as unknown as CursorAwareness,
         sync: { containerId: editorMap.id },
       }),
     )
@@ -152,7 +149,7 @@ class EditorSpecificCursorAwareness {
         user?: { name: string; color: string }
       }
     } = {}
-    for (const [peer, state] of Object.entries(this.awareness.getAllStates())) {
+    for (const [peer, state] of Object.entries(this.getAllStates())) {
       if (!('editorId' in state) || state.editorId !== this.editorId) continue
 
       ans[peer as PeerID] = {
@@ -163,6 +160,7 @@ class EditorSpecificCursorAwareness {
     }
     return ans
   }
+
   setLocal(state: {
     anchor?: Cursor
     focus?: Cursor
@@ -179,12 +177,14 @@ class EditorSpecificCursorAwareness {
       user: state.user || null,
     })
   }
+
   getLocal() {
     const state = this.awareness.getLocal()
     // @ts-expect-error
     if (state?.editorId !== this.editorId) return undefined
     return state
   }
+
   addListener(listener: AwarenessListener) {
     this.awareness.addListener(listener)
   }
