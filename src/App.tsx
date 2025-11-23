@@ -14,7 +14,7 @@ import { defineLoro } from 'prosekit/extensions/loro'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
 import { useEffect, useMemo, useRef } from 'react'
 
-enum EditorId {
+enum EditorInstanceId {
   Question = 'question',
   Answer = 'answer',
 }
@@ -55,8 +55,8 @@ export default function App() {
     <main className="p-10">
       <h1>Editors</h1>
       <div className="mb-6 flex gap-4">
-        <ExerciseEditor doc={loroA} awareness={awarenessA} name="A" />
-        <ExerciseEditor doc={loroB} awareness={awarenessB} name="B" />
+        <ExerciseEditor doc={loroA} awareness={awarenessA} panelId="A" />
+        <ExerciseEditor doc={loroB} awareness={awarenessB} panelId="B" />
       </div>
     </main>
   )
@@ -71,26 +71,26 @@ function useLoroDoc() {
 }
 
 interface ExerciseEditorProps {
-  name: string
+  panelId: string
   doc: LoroDoc
   awareness: CursorAwareness
 }
 
-function ExerciseEditor({ doc, awareness, name }: ExerciseEditorProps) {
+function ExerciseEditor({ doc, awareness, panelId }: ExerciseEditorProps) {
   return (
     <div className="w-80">
-      <h3>Editor {name}</h3>
+      <h3>Editor {panelId}</h3>
       <article>
         <h5>Question:</h5>
         <Editor
-          id={EditorId.Question}
+          id={EditorInstanceId.Question}
           doc={doc}
           awareness={awareness}
           onChange={() => void 0}
         />
         <h5>Answer:</h5>
         <Editor
-          id={EditorId.Answer}
+          id={EditorInstanceId.Answer}
           doc={doc}
           awareness={awareness}
           onChange={() => void 0}
@@ -101,8 +101,8 @@ function ExerciseEditor({ doc, awareness, name }: ExerciseEditorProps) {
 }
 
 interface EditorProps {
-  id: EditorId
-  onChange: (id: EditorId, state: EditorState) => void
+  id: EditorInstanceId
+  onChange: (id: EditorInstanceId, state: EditorState) => void
   doc: LoroDoc
   awareness: CursorAwareness
 }
@@ -136,7 +136,7 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
 
 class EditorSpecificCursorAwareness {
   constructor(
-    private editorId: EditorId,
+    private editorId: EditorInstanceId,
     private awareness: CursorAwareness,
   ) {}
 
