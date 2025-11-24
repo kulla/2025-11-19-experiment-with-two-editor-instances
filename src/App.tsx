@@ -24,6 +24,7 @@ export default function App() {
   const { doc: loroB, awareness: awarenessB, id: idB } = useLoroDoc()
 
   useEffect(() => {
+    // Code taken from https://prosekit.dev/extensions/loro/
     loroA.import(loroB.export({ mode: 'update' }))
     loroB.import(loroA.export({ mode: 'update' }))
 
