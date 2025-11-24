@@ -6,7 +6,7 @@ import 'prosekit/basic/style.css'
 import 'prosekit/basic/typography.css'
 
 import type { EditorState } from '@prosekit/pm/state'
-import { type AwarenessListener, Cursor, LoroDoc, type PeerID } from 'loro-crdt'
+import { type AwarenessListener, Cursor, LoroDoc } from 'loro-crdt'
 import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, union } from 'prosekit/core'
@@ -110,12 +110,11 @@ interface EditorProps {
 function Editor({ id, onChange, doc, awareness }: EditorProps) {
   const editor = useMemo(() => {
     const editorMap = doc.getMap(`prosemirror:${id}`)
-    const editorAwareness = new EditorSpecificCursorAwareness(id, awareness)
     const extension = union(
       defineBasicExtension(),
       defineLoro({
         doc: doc as LoroDocType,
-        awareness: editorAwareness as unknown as CursorAwareness,
+        awareness: createEditorSpecificCursorAwareness(id, awareness),
         sync: { containerId: editorMap.id },
       }),
     )
@@ -131,65 +130,66 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
   )
 }
 
-class EditorSpecificCursorAwareness {
-  constructor(
-    private editorId: EditorInstanceId,
-    private awareness: CursorAwareness,
-  ) {}
+function createEditorSpecificCursorAwareness(
+  editorInstanceId: EditorInstanceId,
+  awareness: CursorAwareness,
+) {
+  return overwriteMethods(awareness, {
+    getAll() {
+      return Object.fromEntries(
+        Object.entries(awareness.getAllStates())
+          .filter(
+            ([_peer, state]) =>
+              'editorInstanceId' in state &&
+              state.editorInstanceId === editorInstanceId,
+          )
+          .map(([peer, state]) => [
+            peer,
+            {
+              anchor: state.anchor ? Cursor.decode(state.anchor) : undefined,
+              focus: state.focus ? Cursor.decode(state.focus) : undefined,
+              user: state.user ? state.user : undefined,
+            },
+          ]),
+      )
+    },
 
-  getAllStates() {
-    return this.awareness.getAllStates()
-  }
+    getLocal() {
+      const state = awareness.getLocal()
 
-  getAll() {
-    const ans: {
-      [peer in PeerID]: {
-        anchor?: Cursor
-        focus?: Cursor
-        user?: { name: string; color: string }
+      if (
+        state &&
+        'editorInstanceId' in state &&
+        state.editorInstanceId !== editorInstanceId
+      ) {
+        return undefined
       }
-    } = {}
-    for (const [peer, state] of Object.entries(this.getAllStates())) {
-      if (!('editorId' in state) || state.editorId !== this.editorId) continue
 
-      ans[peer as PeerID] = {
-        anchor: state.anchor ? Cursor.decode(state.anchor) : undefined,
-        focus: state.focus ? Cursor.decode(state.focus) : undefined,
-        user: state.user ? state.user : undefined,
-      }
-    }
-    return ans
-  }
+      return state
+    },
 
-  setLocal(state: {
-    anchor?: Cursor
-    focus?: Cursor
-    user?: {
-      name: string
-      color: string
-    }
-  }) {
-    this.awareness.setLocalState({
-      // @ts-expect-error
-      editorId: this.editorId,
-      anchor: state.anchor?.encode() || null,
-      focus: state.focus?.encode() || null,
-      user: state.user || null,
-    })
-  }
+    setLocal: ((state) => {
+      awareness.setLocalState({
+        // @ts-expect-error Unfortunately we cannot extend the type of the
+        // awareness state in CursorAwareness
+        editorInstanceId,
+        anchor: state.anchor?.encode() || null,
+        focus: state.focus?.encode() || null,
+        user: state.user || null,
+      })
+    }) as CursorAwareness['setLocal'],
+  })
+}
 
-  getLocal() {
-    const state = this.awareness.getLocal()
-    // @ts-expect-error
-    if (state?.editorId !== this.editorId) return undefined
-    return state
-  }
-
-  addListener(listener: AwarenessListener) {
-    this.awareness.addListener(listener)
-  }
-
-  removeListener(listener: AwarenessListener) {
-    this.awareness.removeListener(listener)
-  }
+function overwriteMethods<A extends object>(
+  target: A,
+  methods: Record<string, unknown>,
+) {
+  return new Proxy(target, {
+    get(target, prop, receiver) {
+      return typeof prop === 'string' && prop in methods
+        ? methods[prop]
+        : Reflect.get(target, prop, receiver)
+    },
+  })
 }
