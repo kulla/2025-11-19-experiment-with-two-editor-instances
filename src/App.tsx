@@ -135,7 +135,7 @@ function createEditorSpecificCursorAwareness(
   editorInstanceId: EditorInstanceId,
   awareness: CursorAwareness,
 ) {
-  return overwriteMethods(awareness, {
+  return createProxyWithChangedMethods(awareness, {
     getAll() {
       return Object.fromEntries(
         Object.entries(awareness.getAllStates())
@@ -182,7 +182,7 @@ function createEditorSpecificCursorAwareness(
   })
 }
 
-function overwriteMethods<A extends object>(
+function createProxyWithChangedMethods<A extends object>(
   target: A,
   methods: Record<string, unknown>,
 ) {
