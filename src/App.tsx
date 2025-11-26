@@ -11,6 +11,7 @@ import { CursorAwareness, type LoroDocType } from 'loro-prosemirror'
 import { defineBasicExtension } from 'prosekit/basic'
 import { createEditor, union } from 'prosekit/core'
 import { defineLoro } from 'prosekit/extensions/loro'
+import { definePlaceholder } from 'prosekit/extensions/placeholder'
 import { ProseKit, useStateUpdate } from 'prosekit/react'
 import { useEffect, useMemo, useRef } from 'react'
 
@@ -113,12 +114,19 @@ function Editor({ id, onChange, doc, awareness }: EditorProps) {
     const editorMap = doc.getMap(`prosemirror:${id}`)
     const extension = union(
       defineBasicExtension(),
+      definePlaceholder({
+        placeholder:
+          id === EditorInstanceId.Question
+            ? 'Type the question here...'
+            : 'Type the answer here...',
+      }),
       defineLoro({
         doc: doc as LoroDocType,
         awareness: createEditorSpecificCursorAwareness(id, awareness),
         sync: { containerId: editorMap.id },
       }),
     )
+
     return createEditor({ extension })
   }, [doc, awareness, id])
 
