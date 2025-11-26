@@ -55,7 +55,7 @@ export default function App() {
 
   return (
     <main className="p-10">
-      <h1>Editors</h1>
+      <h1>Synchronized exercise editors</h1>
       <div className="mb-6 flex gap-4">
         <ExerciseEditor doc={loroA} awareness={awarenessA} panelId="A" />
         <ExerciseEditor doc={loroB} awareness={awarenessB} panelId="B" />
