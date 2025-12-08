@@ -17,13 +17,13 @@
     "es-toolkit": "^1.42.0",
     "loro-crdt": "^1.10.2",
     "loro-prosemirror": "^0.4.1",
-    "prosekit": "^0.16.3",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "prosekit": "^0.17.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
-    "@rsbuild/core": "^1.6.11",
+    "@rsbuild/core": "^1.6.13",
     "@rsbuild/plugin-react": "^1.4.2",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/react-dom": "^19.2.3",
